@@ -5,6 +5,10 @@ import smtplib
 import ssl
 from email.message import EmailMessage
 
+
+config = configparser.ConfigParser()
+config.read(os.path.join(os.path.dirname(__file__), 'config.ini'))
+
 today_str = datetime.date.today().strftime("%Y%m%d")
 php_error_log_file_name = "php_error.log." + today_str
 php_error_log_path = "/data/web/e49159/log/" + php_error_log_file_name
@@ -16,7 +20,22 @@ is_healthy = True
 try:
     with open(php_error_log_path) as file:
         log_text = file.read()
-        if log_text != '':
+        whitelist_passed = True
+        for log_text_line in log_text.split("\n"):
+            if log_text_line.strip() == '':
+                continue
+            if 'whitelist' not in config['general']:
+                whitelist_passed = False
+                break
+            line_safe = False
+            for whitelist_string in config['general']['whitelist'].split("\n"):
+                if whitelist_string in log_text_line:
+                    line_safe = True
+                    break
+            if not line_safe:
+                whitelist_passed = False
+                break
+        if not whitelist_passed:
             is_healthy = False
             error_message = 'PHP errors found'
 except FileNotFoundError as error:
@@ -33,9 +52,6 @@ with open(history_log_path, 'a') as file:
 
 if is_healthy:
     quit()
-
-config = configparser.ConfigParser()
-config.read(os.path.join(os.path.dirname(__file__), 'config.ini'))
 
 to_email = config['email']['admin_email']
 msg = EmailMessage()
