@@ -55,7 +55,7 @@ if is_healthy:
 
 to_email = config['email']['to_email']
 msg = EmailMessage()
-msg['Subject'] = message
+msg['Subject'] = "[PHP Healthchecker] " + message
 msg['From'] = config['email']['from_name'] + " <" + config['email']['from_email'] + ">"
 msg['To'] = to_email
 msg.set_content(log_text)
