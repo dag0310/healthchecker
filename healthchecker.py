@@ -9,11 +9,22 @@ from email.message import EmailMessage
 config = configparser.ConfigParser()
 config.read(os.path.join(os.path.dirname(__file__), 'config.ini'))
 
+if 'error_log_filename' in config['general']:
+    error_log_filename = config['general']['error_log_filename']
+else:
+    error_log_filename = "".join([
+        config['general']['error_log_filename_prefix'],
+        datetime.date.today().strftime(config['general']['error_log_filename_date_format']),
+        config['general']['error_log_filename_suffix']
+    ])
+
+error_log_path = config['general']['error_log_path'] + error_log_filename
+
 log_text = 'No log text available.'
-message = None
-is_healthy = None
+message = 'Healthy'
+is_healthy = True
 try:
-    with open("/data/web/e49159/log/php_error.log") as file:
+    with open(error_log_path) as file:
         log_text = file.read()
         whitelist_passed = True
         for log_text_line in log_text.split("\n"):
@@ -23,6 +34,9 @@ try:
                 whitelist_passed = False
                 break
             line_safe = False
+            print("Whitelist:")
+            print(config['general']['whitelist'])
+            print("")
             for whitelist_string in config['general']['whitelist'].split("\n"):
                 if whitelist_string in log_text_line:
                     line_safe = True
@@ -31,18 +45,19 @@ try:
                 whitelist_passed = False
                 break
         if not whitelist_passed:
-            message = 'PHP errors found.'
+            message = 'Errors found'
+            is_healthy = False
 except FileNotFoundError as error:
-    message = 'FileNotFoundError: ' + str(error)
+    if 'error_log_filename' in config['general']:
+        message = 'FileNotFoundError: ' + str(error)
+        is_healthy = False
+    else:
+        pass  # Healthy
 except IOError as error:
     message = 'IOError: ' + str(error)
+    is_healthy = False
 except Exception as error:
     message = 'Exception: ' + str(error)
-
-if message is None:
-    is_healthy = True
-    message = 'Healthy'
-else:
     is_healthy = False
 
 with open(os.path.join(os.path.dirname(__file__), 'history.log'), 'a') as file:
@@ -55,7 +70,7 @@ if is_healthy:
 
 to_email = config['email']['to_email']
 msg = EmailMessage()
-msg['Subject'] = "[PHP Healthchecker] " + message
+msg['Subject'] = "[" + config['email']['subject_prefix'] + "] " + message
 msg['From'] = config['email']['from_name'] + " <" + config['email']['from_email'] + ">"
 msg['To'] = to_email
 msg.set_content(log_text)
