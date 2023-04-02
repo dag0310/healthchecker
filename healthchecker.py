@@ -9,16 +9,11 @@ from email.message import EmailMessage
 config = configparser.ConfigParser()
 config.read(os.path.join(os.path.dirname(__file__), 'config.ini'))
 
-today_str = datetime.date.today().strftime("%Y%m%d")
-php_error_log_file_name = "php_error.log." + today_str
-php_error_log_path = "/data/web/e49159/log/" + php_error_log_file_name
-history_log_path = os.path.join(os.path.dirname(__file__), 'history.log')
-
-log_text = 'No log text available'
-error_message = None
-is_healthy = True
+log_text = 'No log text available.'
+message = None
+is_healthy = None
 try:
-    with open(php_error_log_path) as file:
+    with open("/data/web/e49159/log/php_error.log") as file:
         log_text = file.read()
         whitelist_passed = True
         for log_text_line in log_text.split("\n"):
@@ -36,26 +31,31 @@ try:
                 whitelist_passed = False
                 break
         if not whitelist_passed:
-            is_healthy = False
-            error_message = 'PHP errors found'
+            message = 'PHP errors found.'
 except FileNotFoundError as error:
-    error_message = error
+    message = 'FileNotFoundError: ' + str(error)
 except IOError as error:
-    error_message = error
+    message = 'IOError: ' + str(error)
 except Exception as error:
-    error_message = error
+    message = 'Exception: ' + str(error)
 
-with open(history_log_path, 'a') as file:
-    line = datetime.datetime.now().isoformat() + " " + php_error_log_file_name + " Error: " + str(error_message)
+if message is None:
+    is_healthy = True
+    message = 'Healthy'
+else:
+    is_healthy = False
+
+with open(os.path.join(os.path.dirname(__file__), 'history.log'), 'a') as file:
+    line = datetime.datetime.now().isoformat() + " " + message
     print(line)
     file.write(line + "\n")
 
 if is_healthy:
     quit()
 
-to_email = config['email']['admin_email']
+to_email = config['email']['to_email']
 msg = EmailMessage()
-msg['Subject'] = str(error_message) + ": " + php_error_log_file_name
+msg['Subject'] = message
 msg['From'] = config['email']['from_name'] + " <" + config['email']['from_email'] + ">"
 msg['To'] = to_email
 msg.set_content(log_text)
