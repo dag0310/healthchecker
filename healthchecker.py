@@ -24,6 +24,10 @@ log_text = 'No log text available.'
 message = 'Healthy'
 is_healthy = True
 try:
+    if 'whitelist' in config['general']:
+        print("Whitelist:")
+        print(config['general']['whitelist'])
+        print("")
     with open(error_log_path) as file:
         log_text = file.read()
         whitelist_passed = True
@@ -34,9 +38,6 @@ try:
                 whitelist_passed = False
                 break
             line_safe = False
-            print("Whitelist:")
-            print(config['general']['whitelist'])
-            print("")
             for whitelist_string in config['general']['whitelist'].split("\n"):
                 if whitelist_string in log_text_line:
                     line_safe = True
