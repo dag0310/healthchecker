@@ -24,10 +24,6 @@ log_text = 'No log text available.'
 message = 'Healthy'
 is_healthy = True
 try:
-    if 'whitelist' in config['general']:
-        print("Whitelist:")
-        print(config['general']['whitelist'])
-        print("")
     with open(error_log_path) as file:
         log_text = file.read()
         whitelist_passed = True
