@@ -18,13 +18,13 @@ else:
         config['general']['error_log_filename_suffix']
     ])
 
-error_log_path = config['general']['error_log_path'] + error_log_filename
+error_log_filepath = config['general']['error_log_path'] + error_log_filename
 
 log_text = 'No log text available.'
 message = 'Healthy'
 is_healthy = True
 try:
-    with open(error_log_path) as file:
+    with open(error_log_filepath) as file:
         log_text = file.read()
         whitelist_passed = True
         for log_text_line in log_text.split("\n"):
