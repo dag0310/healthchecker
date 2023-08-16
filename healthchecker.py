@@ -42,7 +42,7 @@ try:
                 whitelist_passed = False
                 break
         if not whitelist_passed:
-            message = 'Errors found'
+            message = 'Error found in line: ' + log_text_line
             is_healthy = False
 except FileNotFoundError as error:
     if 'error_log_filename' in config['general']:
