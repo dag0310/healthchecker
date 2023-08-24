@@ -9,16 +9,14 @@ from email.message import EmailMessage
 config = configparser.ConfigParser()
 config.read(os.path.join(os.path.dirname(__file__), 'config.ini'))
 
-if 'error_log_filename' in config['general']:
-    error_log_filename = config['general']['error_log_filename']
-else:
-    error_log_filename = "".join([
-        config['general']['error_log_filename_prefix'],
-        datetime.date.today().strftime(config['general']['error_log_filename_date_format']),
-        config['general']['error_log_filename_suffix']
-    ])
+config_parts = []
+config_parts.append(config['general']['error_log_filename_prefix'])
+has_date_format = 'error_log_filename_date_format' in config['general'] and config['general']['error_log_filename_date_format'] != ''
+if has_date_format:
+    config_parts.append(datetime.date.today().strftime(config['general']['error_log_filename_date_format']))
+config_parts.append(config['general']['error_log_filename_suffix'])
 
-error_log_filepath = config['general']['error_log_path'] + error_log_filename
+error_log_filepath = config['general']['error_log_path'] + "".join(config_parts)
 
 log_text = 'No log text available.'
 message = 'Healthy'
@@ -45,11 +43,11 @@ try:
             message = 'Error found in line: ' + log_text_line
             is_healthy = False
 except FileNotFoundError as error:
-    if 'error_log_filename' in config['general']:
+    if has_date_format:
+        pass  # Healthy
+    else:
         message = 'FileNotFoundError: ' + str(error)
         is_healthy = False
-    else:
-        pass  # Healthy
 except IOError as error:
     message = 'IOError: ' + str(error)
     is_healthy = False
