@@ -1,7 +1,12 @@
-# healthchecker
+# Healthchecker
 
 Checks service health by analyzing log files.
 
 ## Usage
 
-`python healthchecker.py`
+- Configure `config.ini`
+- Run `python healthchecker.py`
+
+## Requirements
+
+- Python 3.5+
