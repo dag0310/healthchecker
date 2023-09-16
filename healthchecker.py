@@ -24,22 +24,22 @@ is_healthy = True
 try:
     with open(error_log_filepath) as file:
         log_text = file.read()
-        whitelist_passed = True
+        allowlist_passed = True
         for log_text_line in log_text.split("\n"):
             if log_text_line.strip() == '':
                 continue
-            if 'whitelist' not in config['general']:
-                whitelist_passed = False
+            if 'allowlist' not in config['general']:
+                allowlist_passed = False
                 break
             line_safe = False
-            for whitelist_string in config['general']['whitelist'].split("\n"):
-                if whitelist_string in log_text_line:
+            for allowlist_string in config['general']['allowlist'].split("\n"):
+                if allowlist_string in log_text_line:
                     line_safe = True
                     break
             if not line_safe:
-                whitelist_passed = False
+                allowlist_passed = False
                 break
-        if not whitelist_passed:
+        if not allowlist_passed:
             message = 'Error found in line: ' + log_text_line
             is_healthy = False
 except FileNotFoundError as error:
